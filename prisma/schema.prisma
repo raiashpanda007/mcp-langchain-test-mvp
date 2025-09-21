@@ -1,0 +1,65 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Chats {
+  id        String     @id @default(cuid())
+  name      String
+  userId    String
+  // user      User       @relation(fields: [userId], references: [id])
+  projectId String?
+  // project   Projects?  @relation(fields: [projectId], references: [id])
+  messages  Messages[]
+  mode      Mode
+  createdAt DateTime   @default(now())
+}
+
+model ChatFiles {
+  id           String         @id @default(cuid())
+  fileName     String
+  filePath     String
+  vectorId     String?
+  MessageFiles MessageFiles[]
+}
+
+model Messages {
+  id           String         @id @default(cuid())
+  content      String
+  chatId       String
+  chat         Chats          @relation(fields: [chatId], references: [id])
+  type         MessageType
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  MessageFiles MessageFiles[]
+}
+
+model MessageFiles {
+  id        String    @id @default(cuid())
+  messageId String
+  message   Messages  @relation(fields: [messageId], references: [id])
+  fileId    String
+  file      ChatFiles @relation(fields: [fileId], references: [id])
+}
+
+enum Mode {
+  Agent
+  Edit
+  Review
+}
+
+enum MessageType {
+  Send
+  Recieve
+}
