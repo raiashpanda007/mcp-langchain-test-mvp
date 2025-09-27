@@ -4,12 +4,14 @@ import queue from "../queue"
 import { v4 as uuid } from "uuid";
 
 
-const MessageSchema = zod.object({
+export const MessageSchema = zod.object({
     message: zod.string().min(1).max(1000),
-    messageFiles: zod.object({
-        path: zod.string(),
-        fileContent: zod.string().max(1000)
-    }).optional()
+    messageFiles: zod.array(
+        zod.object({
+            path: zod.string(),
+            fileContent: zod.string()
+        })
+    ).optional()
 })
 export const MessageController = asyncHandler(async (req, res) => {
     const body = req.body;
@@ -25,9 +27,7 @@ export const MessageController = asyncHandler(async (req, res) => {
     const uniqueId = uuid();
     const messageDetails = await queue.add(`message/${chatID}/${uniqueId}`, {
         message,
-        messageFiles:{
-            ...messageFiles
-        }
+        ...(messageFiles ? { messageFiles } : {})
     });
     console.log("Saved into redis :: ", messageDetails.data)
 
